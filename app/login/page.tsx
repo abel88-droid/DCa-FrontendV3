@@ -41,7 +41,7 @@ export default function Login() {
               <Command className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">Bot Dashboard</CardTitle>
+          <CardTitle className="text-2xl text-center">DCa Dashboard</CardTitle>
           <CardDescription className="text-center">Enter your credentials to access the dashboard</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
