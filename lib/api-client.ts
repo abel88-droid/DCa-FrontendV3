@@ -1,7 +1,7 @@
 import axios from "axios"
 import * as mockApi from "./mock-api"
 
-const API_URL = "http://localhost:8000"
+const API_URL = "https://dca-backend-v3-production.up.railway.app/"
 
 // Determine if we're in a preview environment
 const isPreviewEnvironment =
