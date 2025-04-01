@@ -62,23 +62,7 @@ export default function Dashboard() {
         console.error("Failed to load dashboard data:", err)
         setError("Failed to load dashboard data. Using fallback data.")
 
-        // Set fallback data
-        setServerStats({
-          total_commands_used: 1234,
-          active_users: 89,
-          moderation_actions: 23,
-          messages_today: 567,
-          new_members_week: 12,
-        })
-
-        setBotStatus({
-          auto_moderation: true,
-          welcome_messages: true,
-          logging: false,
-          uptime: "3 days, 7 hours",
-          version: "1.2.3",
-          servers: 42,
-        })
+        
       } finally {
         setIsLoading(false)
       }
