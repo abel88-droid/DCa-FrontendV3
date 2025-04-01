@@ -1,12 +1,6 @@
 import axios from "axios"
-import * as mockApi from "./mock-api"
 
 const API_URL = "https://dca-backend-v3-production.up.railway.app/"
-
-// Determine if we're in a preview environment
-const isPreviewEnvironment =
-  typeof window !== "undefined" &&
-  (window.location.hostname.includes("vusercontent.com") || window.location.hostname.includes("vercel.app"))
 
 // Create axios instance
 const api = axios.create({
@@ -30,10 +24,6 @@ api.interceptors.request.use(
 
 // Auth API
 export const login = async (username: string, password: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockLogin(username, password)
-  }
-
   try {
     const formData = new FormData()
     formData.append("username", username)
@@ -49,17 +39,10 @@ export const login = async (username: string, password: string) => {
 }
 
 export const logout = () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockLogout()
-  }
   localStorage.removeItem("token")
 }
 
 export const getCurrentUser = async () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetCurrentUser()
-  }
-
   try {
     const response = await api.get("/users/me")
     return response.data
@@ -71,10 +54,6 @@ export const getCurrentUser = async () => {
 
 // Commands API
 export const getCommands = async () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetCommands()
-  }
-
   try {
     const response = await api.get("/commands")
     return response.data
@@ -85,10 +64,6 @@ export const getCommands = async () => {
 }
 
 export const getCommand = async (id: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetCommand(id)
-  }
-
   try {
     const response = await api.get(`/commands/${id}`)
     return response.data
@@ -99,10 +74,6 @@ export const getCommand = async (id: string) => {
 }
 
 export const createCommand = async (command: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockCreateCommand(command)
-  }
-
   try {
     const response = await api.post("/commands", command)
     return response.data
@@ -113,10 +84,6 @@ export const createCommand = async (command: any) => {
 }
 
 export const updateCommand = async (id: string, command: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockUpdateCommand(id, command)
-  }
-
   try {
     const response = await api.put(`/commands/${id}`, command)
     return response.data
@@ -127,10 +94,6 @@ export const updateCommand = async (id: string, command: any) => {
 }
 
 export const deleteCommand = async (id: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockDeleteCommand(id)
-  }
-
   try {
     const response = await api.delete(`/commands/${id}`)
     return response.data
@@ -142,10 +105,6 @@ export const deleteCommand = async (id: string) => {
 
 // Reaction Roles API
 export const getReactionRoles = async () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetReactionRoles()
-  }
-
   try {
     const response = await api.get("/reaction-roles")
     return response.data
@@ -156,10 +115,6 @@ export const getReactionRoles = async () => {
 }
 
 export const getReactionRole = async (id: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetReactionRole(id)
-  }
-
   try {
     const response = await api.get(`/reaction-roles/${id}`)
     return response.data
@@ -170,10 +125,6 @@ export const getReactionRole = async (id: string) => {
 }
 
 export const createReactionRole = async (reactionRole: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockCreateReactionRole(reactionRole)
-  }
-
   try {
     const response = await api.post("/reaction-roles", reactionRole)
     return response.data
@@ -184,10 +135,6 @@ export const createReactionRole = async (reactionRole: any) => {
 }
 
 export const updateReactionRole = async (id: string, reactionRole: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockUpdateReactionRole(id, reactionRole)
-  }
-
   try {
     const response = await api.put(`/reaction-roles/${id}`, reactionRole)
     return response.data
@@ -198,10 +145,6 @@ export const updateReactionRole = async (id: string, reactionRole: any) => {
 }
 
 export const deleteReactionRole = async (id: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockDeleteReactionRole(id)
-  }
-
   try {
     const response = await api.delete(`/reaction-roles/${id}`)
     return response.data
@@ -213,10 +156,6 @@ export const deleteReactionRole = async (id: string) => {
 
 // YouTube Feeds API
 export const getYouTubeFeeds = async () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetYouTubeFeeds()
-  }
-
   try {
     const response = await api.get("/youtube-feeds")
     return response.data
@@ -227,10 +166,6 @@ export const getYouTubeFeeds = async () => {
 }
 
 export const getYouTubeFeed = async (id: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetYouTubeFeed(id)
-  }
-
   try {
     const response = await api.get(`/youtube-feeds/${id}`)
     return response.data
@@ -241,10 +176,6 @@ export const getYouTubeFeed = async (id: string) => {
 }
 
 export const createYouTubeFeed = async (feed: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockCreateYouTubeFeed(feed)
-  }
-
   try {
     const response = await api.post("/youtube-feeds", feed)
     return response.data
@@ -255,10 +186,6 @@ export const createYouTubeFeed = async (feed: any) => {
 }
 
 export const updateYouTubeFeed = async (id: string, feed: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockUpdateYouTubeFeed(id, feed)
-  }
-
   try {
     const response = await api.put(`/youtube-feeds/${id}`, feed)
     return response.data
@@ -269,10 +196,6 @@ export const updateYouTubeFeed = async (id: string, feed: any) => {
 }
 
 export const deleteYouTubeFeed = async (id: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockDeleteYouTubeFeed(id)
-  }
-
   try {
     const response = await api.delete(`/youtube-feeds/${id}`)
     return response.data
@@ -284,10 +207,6 @@ export const deleteYouTubeFeed = async (id: string) => {
 
 // Logs API
 export const getLogs = async () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetLogs()
-  }
-
   try {
     const response = await api.get("/logs")
     return response.data
@@ -298,10 +217,6 @@ export const getLogs = async () => {
 }
 
 export const createLog = async (log: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockCreateLog(log)
-  }
-
   try {
     const response = await api.post("/logs", log)
     return response.data
@@ -312,10 +227,6 @@ export const createLog = async (log: any) => {
 }
 
 export const updateLog = async (id: string, log: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockUpdateLog(id, log)
-  }
-
   try {
     const response = await api.put(`/logs/${id}`, log)
     return response.data
@@ -326,10 +237,6 @@ export const updateLog = async (id: string, log: any) => {
 }
 
 export const deleteLog = async (id: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockDeleteLog(id)
-  }
-
   try {
     const response = await api.delete(`/logs/${id}`)
     return response.data
@@ -341,10 +248,6 @@ export const deleteLog = async (id: string) => {
 
 // AutoMod Rules API
 export const getAutoModRules = async () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetAutoModRules()
-  }
-
   try {
     const response = await api.get("/automod-rules")
     return response.data
@@ -355,10 +258,6 @@ export const getAutoModRules = async () => {
 }
 
 export const createAutoModRule = async (rule: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockCreateAutoModRule(rule)
-  }
-
   try {
     const response = await api.post("/automod-rules", rule)
     return response.data
@@ -369,10 +268,6 @@ export const createAutoModRule = async (rule: any) => {
 }
 
 export const updateAutoModRule = async (id: string, rule: any) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockUpdateAutoModRule(id, rule)
-  }
-
   try {
     const response = await api.put(`/automod-rules/${id}`, rule)
     return response.data
@@ -383,10 +278,6 @@ export const updateAutoModRule = async (id: string, rule: any) => {
 }
 
 export const deleteAutoModRule = async (id: string) => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockDeleteAutoModRule(id)
-  }
-
   try {
     const response = await api.delete(`/automod-rules/${id}`)
     return response.data
@@ -398,10 +289,6 @@ export const deleteAutoModRule = async (id: string) => {
 
 // Stats API
 export const getServerStats = async () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetServerStats()
-  }
-
   try {
     const response = await api.get("/server-stats")
     return response.data
@@ -412,10 +299,6 @@ export const getServerStats = async () => {
 }
 
 export const getBotStatus = async () => {
-  if (isPreviewEnvironment) {
-    return mockApi.mockGetBotStatus()
-  }
-
   try {
     const response = await api.get("/bot-status")
     return response.data
@@ -426,4 +309,3 @@ export const getBotStatus = async () => {
 }
 
 export default api
-
