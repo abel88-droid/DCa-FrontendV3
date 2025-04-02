@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const API_URL = "https://dca-backend-v3-production.up.railway.app/"
+const API_URL = "https://dca-backend-v3-production.up.railway.app"
 
 // Create axios instance
 const api = axios.create({
