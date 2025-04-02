@@ -1,311 +1,176 @@
-import axios from "axios"
+"use client"
 
-const API_URL = "https://dca-backend-v3-production.up.railway.app"
+import * as React from "react"
+import { useRouter } from "next/navigation"
+import { Command, AlertCircle, Info } from "lucide-react"
 
-// Create axios instance
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-})
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { login } from "@/lib/api-client"
 
-// Add request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token")
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+// Detect if we're in a preview environment
+const isPreviewEnvironment = () => {
+  if (typeof window === "undefined") return false
+
+  // Check for Vercel preview
+  const isVercelPreview =
+    window.location.hostname.includes("vercel.app") ||
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+
+  return isVercelPreview
+}
+
+export default function Login() {
+  const router = useRouter()
+  const [username, setUsername] = React.useState("")
+  const [password, setPassword] = React.useState("")
+  const [error, setError] = React.useState("")
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [debugInfo, setDebugInfo] = React.useState<string | null>(null)
+  const [isPreview, setIsPreview] = React.useState(false)
+
+  // Check if we're in a preview environment
+  React.useEffect(() => {
+    setIsPreview(isPreviewEnvironment())
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setDebugInfo(null)
+    setIsLoading(true)
+
+    try {
+      console.log("Login attempt with username:", username)
+      await login(username, password)
+      router.push("/dashboard")
+    } catch (err: any) {
+      console.error("Login error:", err)
+
+      // Extract the most helpful error message
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail)
+      } else if (err.message) {
+        setError(err.message)
+      } else {
+        setError("Login failed. Please check your credentials and try again.")
+      }
+
+      // Set debug info
+      setDebugInfo(
+        `Error type: ${err.name || "Unknown"}, Message: ${err.message || "No message"}, Status: ${err.response?.status || "No status"}`,
+      )
+    } finally {
+      setIsLoading(false)
     }
-    return config
-  },
-  (error) => Promise.reject(error),
-)
-
-// Auth API
-export const login = async (username: string, password: string) => {
-  try {
-    const formData = new FormData()
-    formData.append("username", username)
-    formData.append("password", password)
-
-    const response = await axios.post(`${API_URL}/token`, formData)
-    localStorage.setItem("token", response.data.access_token)
-    return response.data
-  } catch (error) {
-    console.error("Login error:", error)
-    throw error
   }
-}
 
-export const logout = () => {
-  localStorage.removeItem("token")
-}
+  // For development/debugging - direct login option
+  const handleDirectLogin = async () => {
+    try {
+      setIsLoading(true)
+      setError("")
+      setDebugInfo(null)
 
-export const getCurrentUser = async () => {
-  try {
-    const response = await api.get("/users/me")
-    return response.data
-  } catch (error) {
-    console.error("Get current user error:", error)
-    throw error
+      // Create a token manually
+      const mockToken = "mock-token-" + Date.now()
+      localStorage.setItem("token", mockToken)
+
+      // Navigate to dashboard
+      router.push("/dashboard")
+    } catch (err: any) {
+      console.error("Direct login error:", err)
+      setError("Direct login failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-center mb-2">
+            <div className="rounded-full bg-primary p-2">
+              <Command className="h-6 w-6 text-primary-foreground" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl text-center">Bot Dashboard</CardTitle>
+          <CardDescription className="text-center">Enter your credentials to access the dashboard</CardDescription>
+
+          {isPreview && (
+            <Alert className="mt-4 bg-blue-50 border-blue-200">
+              <Info className="h-4 w-4 text-blue-500" />
+              <AlertDescription className="text-blue-700">
+                <strong>Preview Mode:</strong> Use username <code className="bg-blue-100 px-1 rounded">admin</code> and
+                password <code className="bg-blue-100 px-1 rounded">password</code> to log in.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {debugInfo && (
+              <Alert variant="default" className="bg-blue-50 text-blue-800 border-blue-200">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-xs font-mono break-all">{debugInfo}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2">
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
+            </Button>
+
+            {isPreview && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full text-sm"
+                onClick={handleDirectLogin}
+                disabled={isLoading}
+              >
+                Skip Login (Preview Mode)
+              </Button>
+            )}
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  )
 }
 
-// Commands API
-export const getCommands = async () => {
-  try {
-    const response = await api.get("/commands")
-    return response.data
-  } catch (error) {
-    console.error("Get commands error:", error)
-    throw error
-  }
-}
-
-export const getCommand = async (id: string) => {
-  try {
-    const response = await api.get(`/commands/${id}`)
-    return response.data
-  } catch (error) {
-    console.error("Get command error:", error)
-    throw error
-  }
-}
-
-export const createCommand = async (command: any) => {
-  try {
-    const response = await api.post("/commands", command)
-    return response.data
-  } catch (error) {
-    console.error("Create command error:", error)
-    throw error
-  }
-}
-
-export const updateCommand = async (id: string, command: any) => {
-  try {
-    const response = await api.put(`/commands/${id}`, command)
-    return response.data
-  } catch (error) {
-    console.error("Update command error:", error)
-    throw error
-  }
-}
-
-export const deleteCommand = async (id: string) => {
-  try {
-    const response = await api.delete(`/commands/${id}`)
-    return response.data
-  } catch (error) {
-    console.error("Delete command error:", error)
-    throw error
-  }
-}
-
-// Reaction Roles API
-export const getReactionRoles = async () => {
-  try {
-    const response = await api.get("/reaction-roles")
-    return response.data
-  } catch (error) {
-    console.error("Get reaction roles error:", error)
-    throw error
-  }
-}
-
-export const getReactionRole = async (id: string) => {
-  try {
-    const response = await api.get(`/reaction-roles/${id}`)
-    return response.data
-  } catch (error) {
-    console.error("Get reaction role error:", error)
-    throw error
-  }
-}
-
-export const createReactionRole = async (reactionRole: any) => {
-  try {
-    const response = await api.post("/reaction-roles", reactionRole)
-    return response.data
-  } catch (error) {
-    console.error("Create reaction role error:", error)
-    throw error
-  }
-}
-
-export const updateReactionRole = async (id: string, reactionRole: any) => {
-  try {
-    const response = await api.put(`/reaction-roles/${id}`, reactionRole)
-    return response.data
-  } catch (error) {
-    console.error("Update reaction role error:", error)
-    throw error
-  }
-}
-
-export const deleteReactionRole = async (id: string) => {
-  try {
-    const response = await api.delete(`/reaction-roles/${id}`)
-    return response.data
-  } catch (error) {
-    console.error("Delete reaction role error:", error)
-    throw error
-  }
-}
-
-// YouTube Feeds API
-export const getYouTubeFeeds = async () => {
-  try {
-    const response = await api.get("/youtube-feeds")
-    return response.data
-  } catch (error) {
-    console.error("Get YouTube feeds error:", error)
-    throw error
-  }
-}
-
-export const getYouTubeFeed = async (id: string) => {
-  try {
-    const response = await api.get(`/youtube-feeds/${id}`)
-    return response.data
-  } catch (error) {
-    console.error("Get YouTube feed error:", error)
-    throw error
-  }
-}
-
-export const createYouTubeFeed = async (feed: any) => {
-  try {
-    const response = await api.post("/youtube-feeds", feed)
-    return response.data
-  } catch (error) {
-    console.error("Create YouTube feed error:", error)
-    throw error
-  }
-}
-
-export const updateYouTubeFeed = async (id: string, feed: any) => {
-  try {
-    const response = await api.put(`/youtube-feeds/${id}`, feed)
-    return response.data
-  } catch (error) {
-    console.error("Update YouTube feed error:", error)
-    throw error
-  }
-}
-
-export const deleteYouTubeFeed = async (id: string) => {
-  try {
-    const response = await api.delete(`/youtube-feeds/${id}`)
-    return response.data
-  } catch (error) {
-    console.error("Delete YouTube feed error:", error)
-    throw error
-  }
-}
-
-// Logs API
-export const getLogs = async () => {
-  try {
-    const response = await api.get("/logs")
-    return response.data
-  } catch (error) {
-    console.error("Get logs error:", error)
-    throw error
-  }
-}
-
-export const createLog = async (log: any) => {
-  try {
-    const response = await api.post("/logs", log)
-    return response.data
-  } catch (error) {
-    console.error("Create log error:", error)
-    throw error
-  }
-}
-
-export const updateLog = async (id: string, log: any) => {
-  try {
-    const response = await api.put(`/logs/${id}`, log)
-    return response.data
-  } catch (error) {
-    console.error("Update log error:", error)
-    throw error
-  }
-}
-
-export const deleteLog = async (id: string) => {
-  try {
-    const response = await api.delete(`/logs/${id}`)
-    return response.data
-  } catch (error) {
-    console.error("Delete log error:", error)
-    throw error
-  }
-}
-
-// AutoMod Rules API
-export const getAutoModRules = async () => {
-  try {
-    const response = await api.get("/automod-rules")
-    return response.data
-  } catch (error) {
-    console.error("Get automod rules error:", error)
-    throw error
-  }
-}
-
-export const createAutoModRule = async (rule: any) => {
-  try {
-    const response = await api.post("/automod-rules", rule)
-    return response.data
-  } catch (error) {
-    console.error("Create automod rule error:", error)
-    throw error
-  }
-}
-
-export const updateAutoModRule = async (id: string, rule: any) => {
-  try {
-    const response = await api.put(`/automod-rules/${id}`, rule)
-    return response.data
-  } catch (error) {
-    console.error("Update automod rule error:", error)
-    throw error
-  }
-}
-
-export const deleteAutoModRule = async (id: string) => {
-  try {
-    const response = await api.delete(`/automod-rules/${id}`)
-    return response.data
-  } catch (error) {
-    console.error("Delete automod rule error:", error)
-    throw error
-  }
-}
-
-// Stats API
-export const getServerStats = async () => {
-  try {
-    const response = await api.get("/server-stats")
-    return response.data
-  } catch (error) {
-    console.error("Get server stats error:", error)
-    throw error
-  }
-}
-
-export const getBotStatus = async () => {
-  try {
-    const response = await api.get("/bot-status")
-    return response.data
-  } catch (error) {
-    console.error("Get bot status error:", error)
-    throw error
-  }
-}
-
-export default api
+    
