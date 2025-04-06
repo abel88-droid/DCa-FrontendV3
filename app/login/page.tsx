@@ -1,15 +1,30 @@
 "use client"
 
+import { CardFooter } from "@/components/ui/card"
+
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Command, AlertCircle, Info } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { login } from "@/lib/api-client"
+
+// Detect if we're in a preview environment
+const isPreviewEnvironment = () => {
+  if (typeof window === "undefined") return false
+
+  // Check for Vercel preview
+  const isVercelPreview =
+    window.location.hostname.includes("vercel.app") ||
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+
+  return isVercelPreview
+}
 
 export default function Login() {
   const router = useRouter()
@@ -18,6 +33,12 @@ export default function Login() {
   const [error, setError] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
   const [debugInfo, setDebugInfo] = React.useState<string | null>(null)
+  const [isPreview, setIsPreview] = React.useState(false)
+
+  // Check if we're in a preview environment
+  React.useEffect(() => {
+    setIsPreview(isPreviewEnvironment())
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,6 +103,16 @@ export default function Login() {
           </div>
           <CardTitle className="text-2xl text-center">Bot Dashboard</CardTitle>
           <CardDescription className="text-center">Enter your credentials to access the dashboard</CardDescription>
+
+          {isPreview && (
+            <Alert className="mt-4 bg-blue-50 border-blue-200">
+              <Info className="h-4 w-4 text-blue-500" />
+              <AlertDescription className="text-blue-700">
+                <strong>Preview Mode:</strong> Use username <code className="bg-blue-100 px-1 rounded">admin</code> and
+                password <code className="bg-blue-100 px-1 rounded">password</code> to log in.
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -126,7 +157,7 @@ export default function Login() {
               {isLoading ? "Logging in..." : "Login"}
             </Button>
 
-            {process.env.NODE_ENV !== "production" && (
+            {isPreview && (
               <Button
                 type="button"
                 variant="outline"
@@ -134,7 +165,7 @@ export default function Login() {
                 onClick={handleDirectLogin}
                 disabled={isLoading}
               >
-                Development: Skip Login
+                Skip Login (Preview Mode)
               </Button>
             )}
           </CardFooter>
