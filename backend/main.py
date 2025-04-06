@@ -8,7 +8,6 @@ import jwt
 import uuid
 from enum import Enum
 import os
-# Add these imports
 import os
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, MetaData, Table
 from sqlalchemy.ext.declarative import declarative_base
