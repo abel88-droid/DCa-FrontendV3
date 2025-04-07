@@ -1,13 +1,11 @@
 "use client"
 
-import { CardFooter } from "@/components/ui/card"
-
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Command, AlertCircle, Info } from "lucide-react"
+import { Command, AlertCircle, Info, Bug } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -34,10 +32,17 @@ export default function Login() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [debugInfo, setDebugInfo] = React.useState<string | null>(null)
   const [isPreview, setIsPreview] = React.useState(false)
+  const [showDebug, setShowDebug] = React.useState(false)
+  const [apiUrl, setApiUrl] = React.useState("")
 
   // Check if we're in a preview environment
   React.useEffect(() => {
     setIsPreview(isPreviewEnvironment())
+
+    // Get the API URL from the environment
+    import("@/lib/api-client").then((module) => {
+      setApiUrl(module.default.defaults.baseURL || "Not set")
+    })
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,6 +155,26 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+            </div>
+
+            {/* Debug section */}
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => setShowDebug(!showDebug)}
+                className="text-xs text-gray-500 flex items-center gap-1"
+              >
+                <Bug className="h-3 w-3" />
+                {showDebug ? "Hide Debug Info" : "Show Debug Info"}
+              </button>
+
+              {showDebug && (
+                <div className="mt-2 p-2 bg-gray-100 rounded-md text-xs font-mono">
+                  <div>API URL: {apiUrl}</div>
+                  <div>Preview Mode: {isPreview ? "Yes" : "No"}</div>
+                  <div>Hostname: {typeof window !== "undefined" ? window.location.hostname : "SSR"}</div>
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
