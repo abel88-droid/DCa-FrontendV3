@@ -8,6 +8,7 @@ import jwt
 import uuid
 from enum import Enum
 import os
+# Add these imports
 import os
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, MetaData, Table
 from sqlalchemy.ext.declarative import declarative_base
@@ -16,10 +17,14 @@ from databases import Database
 
 app = FastAPI(title="Discord Bot Dashboard API")
 
-# CORS configuration
+# CORS configuration - Updated to include your Vercel domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://dca-frontend-v3.vercel.app"],  # Removed trailing slash
+    allow_origins=[
+        "https://dca-frontend-v3.vercel.app",  # Your production Vercel domain
+        "http://localhost:3000",               # Local development
+        "https://dca-frontend-v3-git-main-your-username.vercel.app"  # Replace with your actual preview URL if needed
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -546,4 +551,3 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
-          
