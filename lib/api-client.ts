@@ -1,20 +1,19 @@
 import axios from "axios"
 
 // Change the API_URL to your Railway deployment URL
-// Make sure this is your actual Railway URL (no trailing slash)
+// This should be the public URL of your Railway deployment, not the internal 0.0.0.0:8000
 const API_URL = "https://dca-backend-v3-production.up.railway.app"
 
-// Detect if we're in a preview environment
+// Detect if we're in a preview environment - ONLY use mock data in preview
 const isPreviewEnvironment = () => {
   if (typeof window === "undefined") return false
 
-  // Check for Vercel preview
-  const isVercelPreview =
+  // Only consider it a preview if it's on vercel.app or localhost
+  return (
     window.location.hostname.includes("vercel.app") ||
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1"
-
-  return isVercelPreview
+  )
 }
 
 // Create axios instance with timeout and better error handling
@@ -23,14 +22,14 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 15000, // Increased timeout to 15 seconds
+  timeout: 15000, // 15 second timeout
   withCredentials: true, // Add credentials for CORS
 })
 
 // Add request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    console.log(`Making request to: ${config.url}`)
+    console.log(`Making request to: ${config.baseURL}${config.url}`)
     const token = localStorage.getItem("token")
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -71,7 +70,7 @@ api.interceptors.response.use(
   },
 )
 
-// Mock data for preview environment
+// Mock data for preview environment only
 const mockData = {
   token: "mock-token-12345",
   commands: [
@@ -192,26 +191,6 @@ export const login = async (username: string, password: string) => {
       password: "********", // Don't log actual password
     })
 
-    // Try direct fetch API first as a fallback
-    try {
-      const response = await fetch(`${API_URL}/token`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log("Login successful with fetch API")
-        localStorage.setItem("token", data.access_token)
-        return data
-      } else {
-        console.log("Fetch API login failed, trying axios")
-      }
-    } catch (fetchError) {
-      console.log("Fetch API error, trying axios:", fetchError)
-    }
-
     // Try with axios
     const response = await axios.post(`${API_URL}/token`, formData, {
       timeout: 15000, // 15 second timeout
@@ -244,7 +223,9 @@ export const logout = () => {
 }
 
 export const getCurrentUser = async () => {
+  // Only use mock data in preview environment
   if (isPreviewEnvironment()) {
+    console.log("Using mock user data in preview environment")
     return {
       id: "1",
       username: "admin",
@@ -263,7 +244,9 @@ export const getCurrentUser = async () => {
 
 // Commands API
 export const getCommands = async () => {
+  // Only use mock data in preview environment
   if (isPreviewEnvironment()) {
+    console.log("Using mock commands data in preview environment")
     await new Promise((resolve) => setTimeout(resolve, 500))
     return mockData.commands
   }
@@ -690,4 +673,4 @@ export const getBotStatus = async () => {
 
 export default api
 
-      
+  
