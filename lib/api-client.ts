@@ -213,6 +213,7 @@ export const login = async (username: string, password: string) => {
       timeout: 15000, // 15 second timeout
       headers: {
         // Don't set Content-Type here, let the browser set it with the boundary
+        Accept: "application/json",
       },
       withCredentials: true,
     })
@@ -690,4 +691,4 @@ export const getBotStatus = async () => {
 
 export default api
 
-                                 
+      
