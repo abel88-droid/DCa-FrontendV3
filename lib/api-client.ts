@@ -8,12 +8,29 @@ const API_URL = "https://dca-backend-v3-production.up.railway.app"
 const isPreviewEnvironment = () => {
   if (typeof window === "undefined") return false
 
-  // Only consider it a preview if it's on vercel.app or localhost
-  return (
-    window.location.hostname.includes("vercel.app") ||
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-  )
+  // Only consider it a preview if it's on localhost or a Vercel preview URL (not production)
+  // Vercel preview URLs contain 'vercel.app' but also have additional identifiers
+  const hostname = window.location.hostname
+
+  // Local development
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return true
+  }
+
+  // Vercel preview deployments have patterns like:
+  // project-git-branch-username.vercel.app or project-randomstring.vercel.app
+  // But your production URL is just dca-frontend-v3.vercel.app
+  if (hostname.includes("vercel.app")) {
+    // If it's exactly your production domain, it's not a preview
+    if (hostname === "dca-frontend-v3.vercel.app") {
+      return false
+    }
+    // Otherwise it's a preview deployment
+    return true
+  }
+
+  // Any other domain is considered production
+  return false
 }
 
 // Create axios instance with timeout and better error handling
@@ -673,4 +690,4 @@ export const getBotStatus = async () => {
 
 export default api
 
-  
+                                 
