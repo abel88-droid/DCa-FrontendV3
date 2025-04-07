@@ -15,13 +15,28 @@ import { login } from "@/lib/api-client"
 const isPreviewEnvironment = () => {
   if (typeof window === "undefined") return false
 
-  // Check for Vercel preview
-  const isVercelPreview =
-    window.location.hostname.includes("vercel.app") ||
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
+  // Only consider it a preview if it's on localhost or a Vercel preview URL (not production)
+  const hostname = window.location.hostname
 
-  return isVercelPreview
+  // Local development
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return true
+  }
+
+  // Vercel preview deployments have patterns like:
+  // project-git-branch-username.vercel.app or project-randomstring.vercel.app
+  // But your production URL is just dca-frontend-v3.vercel.app
+  if (hostname.includes("vercel.app")) {
+    // If it's exactly your production domain, it's not a preview
+    if (hostname === "dca-frontend-v3.vercel.app") {
+      return false
+    }
+    // Otherwise it's a preview deployment
+    return true
+  }
+
+  // Any other domain is considered production
+  return false
 }
 
 export default function Login() {
