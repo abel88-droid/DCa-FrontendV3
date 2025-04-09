@@ -2,7 +2,7 @@ import axios from "axios"
 
 // Change the API_URL to your Railway deployment URL
 // This should be the public URL of your Railway deployment, not the internal 0.0.0.0:8000
-const API_URL = "https://dca-backend-v3-production.up.railway.app"
+const API_URL = "https://dca-backend-v4-production.up.railway.app/"
 
 // Detect if we're in a preview environment - ONLY use mock data in preview
 const isPreviewEnvironment = () => {
