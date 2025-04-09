@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { login } from "@/lib/api-client"
+import axios from "axios"
 
 // Detect if we're in a preview environment
 const isPreviewEnvironment = () => {
@@ -49,6 +50,7 @@ export default function Login() {
   const [isPreview, setIsPreview] = React.useState(false)
   const [showDebug, setShowDebug] = React.useState(false)
   const [apiUrl, setApiUrl] = React.useState("")
+  const [healthCheckResult, setHealthCheckResult] = React.useState<string | null>(null)
 
   // Check if we're in a preview environment
   React.useEffect(() => {
@@ -109,6 +111,17 @@ export default function Login() {
       setError("Direct login failed")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Health check for debugging
+  const checkBackendHealth = async () => {
+    try {
+      setHealthCheckResult("Checking...")
+      const response = await axios.get(`${apiUrl}/health`)
+      setHealthCheckResult(JSON.stringify(response.data, null, 2))
+    } catch (err: any) {
+      setHealthCheckResult(`Error: ${err.message}`)
     }
   }
 
@@ -188,6 +201,16 @@ export default function Login() {
                   <div>API URL: {apiUrl}</div>
                   <div>Preview Mode: {isPreview ? "Yes" : "No"}</div>
                   <div>Hostname: {typeof window !== "undefined" ? window.location.hostname : "SSR"}</div>
+
+                  <div className="mt-2">
+                    <Button type="button" variant="outline" size="sm" onClick={checkBackendHealth} className="text-xs">
+                      Check Backend Health
+                    </Button>
+                  </div>
+
+                  {healthCheckResult && (
+                    <div className="mt-2 p-2 bg-gray-200 rounded-md whitespace-pre-wrap">{healthCheckResult}</div>
+                  )}
                 </div>
               )}
             </div>
@@ -214,4 +237,3 @@ export default function Login() {
     </div>
   )
 }
-
