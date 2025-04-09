@@ -197,22 +197,22 @@ export const login = async (username: string, password: string) => {
 
     console.log("Attempting login to:", `${API_URL}/token`)
 
-    // Create form data
-    const formData = new FormData()
-    formData.append("username", username)
-    formData.append("password", password)
+    // Try with URLSearchParams instead of FormData
+    const params = new URLSearchParams()
+    params.append("username", username)
+    params.append("password", password)
 
-    // Log form data for debugging
-    console.log("Form data:", {
+    // Log params for debugging
+    console.log("Login params:", {
       username: username,
       password: "********", // Don't log actual password
     })
 
     // Try with axios
-    const response = await axios.post(`${API_URL}/token`, formData, {
+    const response = await axios.post(`${API_URL}/token`, params, {
       timeout: 15000, // 15 second timeout
       headers: {
-        // Don't set Content-Type here, let the browser set it with the boundary
+        "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
       },
       withCredentials: true,
@@ -690,5 +690,4 @@ export const getBotStatus = async () => {
 }
 
 export default api
-
       
