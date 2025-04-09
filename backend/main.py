@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Header
+from fastapi import FastAPI, Depends, HTTPException, status, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -8,12 +8,17 @@ import jwt
 import uuid
 from enum import Enum
 import os
+import logging
 # Add these imports
 import os
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, MetaData, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from databases import Database
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Discord Bot Dashboard API")
 
@@ -23,7 +28,7 @@ app.add_middleware(
     allow_origins=[
         "https://dca-frontend-v3.vercel.app",  # Your production Vercel domain
         "http://localhost:3000",               # Local development
-        "https://dca-frontend-v3-git-main-your-username.vercel.app"  # Replace with your actual preview URL if needed
+        "*",                                   # Allow all origins temporarily for debugging
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -231,22 +236,26 @@ automod_rules_db = [
 
 # Authentication functions
 def get_user(username: str):
+    logger.info(f"Looking up user: {username}")
+    logger.info(f"Available users: {list(users_db.keys())}")
     if username in users_db:
         user_dict = users_db[username]
+        logger.info(f"User found: {username}")
         return UserInDB(**user_dict)
+    logger.warning(f"User not found: {username}")
     return None
 
 def authenticate_user(username: str, password: str):
-  print(f"Authenticating user: {username}")
-  user = get_user(username)
-  if not user:
-      print(f"User not found: {username}")
-      return False
-  if user.hashed_password != password:  # Simple comparison for development
-      print(f"Password mismatch for user: {username}")
-      return False
-  print(f"Authentication successful for user: {username}")
-  return user
+    logger.info(f"Authenticating user: {username}")
+    user = get_user(username)
+    if not user:
+        logger.warning(f"User not found: {username}")
+        return False
+    if user.hashed_password != password:  # Simple comparison for development
+        logger.warning(f"Password mismatch for user: {username}")
+        return False
+    logger.info(f"Authentication successful for user: {username}")
+    return user
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -324,20 +333,32 @@ async def shutdown():
 
 # Routes
 @app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-  print(f"Login attempt with username: {form_data.username}, password: {form_data.password}")
-  user = authenticate_user(form_data.username, form_data.password)
-  if not user:
-      raise HTTPException(
-          status_code=status.HTTP_401_UNAUTHORIZED,
-          detail="Incorrect username or password",
-          headers={"WWW-Authenticate": "Bearer"},
-      )
-  access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-  access_token = create_access_token(
-      data={"sub": user.username}, expires_delta=access_token_expires
-  )
-  return {"access_token": access_token, "token_type": "bearer"}
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+    # Log the request for debugging
+    body = await request.body()
+    logger.info(f"Login request body: {body}")
+    logger.info(f"Login attempt with username: {form_data.username}")
+    
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        logger.warning(f"Login failed for user: {form_data.username}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    logger.info(f"Login successful for user: {form_data.username}")
+    return {"access_token": access_token, "token_type": "bearer"}
+
+# Simple test endpoint that doesn't require authentication
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "users": list(users_db.keys())}
 
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
@@ -555,5 +576,3 @@ async def get_bot_reaction_roles(guild_id: Optional[str] = None, verified: bool 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-                           
